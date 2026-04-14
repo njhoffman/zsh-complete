@@ -1,0 +1,13 @@
+Usage: sample [OPTIONS] FILE...
+
+A sample command to test generic completion generation.
+
+Options:
+  -h, --help            Show this help message and exit
+  -v, --verbose         Enable verbose output
+  -o, --output=FILE     Write output to FILE
+      --version         Print version and exit
+  -n                    Dry run (no changes)
+
+Examples:
+  sample foo.txt

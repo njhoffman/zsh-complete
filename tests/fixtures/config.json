@@ -1,0 +1,36 @@
+{
+  "files": {
+    "history":   "/tmp/zsh-complete-test/history.log",
+    "commands":  "/tmp/zsh-complete-test/data/commands.json",
+    "available": "/tmp/zsh-complete-test/data/comps-available.json",
+    "existing":  "/tmp/zsh-complete-test/data/comps-existing.json",
+    "search":    "/tmp/zsh-complete-test/data/comps-search.json",
+    "generic":   "/tmp/zsh-complete-test/data/comps-generic.json",
+    "output":    "/tmp/zsh-complete-test/data/comps-output.json"
+  },
+  "dirs": {
+    "temp":      "/tmp/zsh-complete-test/temp",
+    "src":       "/tmp/zsh-complete-test/src",
+    "available": "/tmp/zsh-complete-test/available",
+    "active":    "/tmp/zsh-complete-test/active"
+  },
+  "sources": [
+    {
+      "name": "test-generated",
+      "type": "generated",
+      "commands": {
+        "testcmd": "echo '#compdef testcmd'"
+      }
+    },
+    {
+      "name": "test-builtin",
+      "type": "builtin",
+      "paths": [
+        "/tmp/zsh-complete-test/mock-builtin"
+      ]
+    }
+  ],
+  "commands": {
+    "testcmd": "test-builtin"
+  }
+}

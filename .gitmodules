@@ -1,0 +1,3 @@
+[submodule "resources/zsh-autocomplete"]
+	path = resources/zsh-autocomplete
+	url = https://github.com/marlonrichert/zsh-autocomplete

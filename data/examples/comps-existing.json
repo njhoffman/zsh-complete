@@ -1,0 +1,22 @@
+{
+  "command_name": [
+    {
+      "path": "/path/to/completion",
+      "lines": 50
+    },
+    {
+      "type": "file",
+      "path": "/path/to/completion",
+      "lines": 50
+    }
+  ],
+  "command_name2": [
+    {
+      "type": "function"
+    },
+    {
+      "type": "alias",
+      "path": "command_name2 alias definition"
+    }
+  ]
+}

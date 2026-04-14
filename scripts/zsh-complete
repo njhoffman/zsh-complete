@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# zsh-complete: top-level dispatcher for the zsh-complete toolkit.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+show_help() {
+    cat << EOF
+Usage: zsh-complete <subcommand> [OPTIONS]
+
+Manage zsh completions across heterogeneous sources.
+
+Subcommands:
+  fetch    [--source NAME] [--force]      Fetch sources into dirs.src
+  compile  [--limit N]                    Compile commands + completion data
+  list     [--FILTER] [--pick] [--json]   List completions; FILTER:
+           --to-install --to-uninstall --missing --existing --all --summary
+  sync     [--dry-run|--apply] [--prune]  Reconcile dirs.active with available
+  generic  [--source FILE] [--stdout] CMD Generate generic completion
+  check    [--all|--command CMD|--file F] Validate completion files
+  search   [QUERY]                        (deferred stub)
+  doctor                                  Sanity-check deps and config
+
+Run 'zsh-complete <subcommand> --help' for subcommand details.
+EOF
+}
+
+doctor() {
+    source "$SCRIPT_DIR/lib/utils.sh"
+    print_header "zsh-complete doctor"
+
+    local missing=0 cmd
+    for cmd in jq git curl zsh; do
+        if command -v "$cmd" > /dev/null; then
+            print_aligned "$cmd" "$(command -v "$cmd")"
+        else
+            print_aligned "$cmd" "MISSING"
+            missing=$((missing + 1))
+        fi
+    done
+    for cmd in fzf bats; do
+        if command -v "$cmd" > /dev/null; then
+            print_aligned "$cmd" "$(command -v "$cmd") (optional)"
+        else
+            print_aligned "$cmd" "not installed (optional)"
+        fi
+    done
+
+    print_header "Config"
+    print_aligned "CONFIG_FILE" "$CONFIG_FILE"
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        print_aligned "Status" "NOT FOUND"
+        return 1
+    fi
+    if jq '.' "$CONFIG_FILE" > /dev/null 2>&1; then
+        print_aligned "JSON"   "valid"
+    else
+        print_aligned "JSON"   "INVALID"
+        return 1
+    fi
+
+    load_config
+    local n
+    n=$(get_source_count)
+    print_aligned "Sources" "$n"
+
+    print_header "Directories"
+    local k v
+    for k in src available active temp; do
+        v=$(get_dir "$k" 2>/dev/null) || continue
+        local status="missing"
+        [[ -d "$v" ]] && status="exists"
+        printf "${COLOR_CYAN}%-20s${COLOR_RESET} %s [%s]\n" "$k:" "$v" "$status"
+    done
+
+    [[ $missing -eq 0 ]] && print_success "doctor: ok" || { print_error "doctor: $missing required tool(s) missing"; return 1; }
+}
+
+main() {
+    if [[ $# -eq 0 ]]; then show_help; exit 0; fi
+    local sub="$1"; shift
+    case "$sub" in
+        fetch)    exec "$SCRIPT_DIR/fetch.sh"   "$@" ;;
+        compile)  exec "$SCRIPT_DIR/compile.sh" "$@" ;;
+        list)     exec "$SCRIPT_DIR/list.sh"    "$@" ;;
+        sync)     exec "$SCRIPT_DIR/sync.sh"    "$@" ;;
+        generic)  exec "$SCRIPT_DIR/generic.sh" "$@" ;;
+        check)    exec "$SCRIPT_DIR/output.sh"  "$@" ;;
+        search)   exec "$SCRIPT_DIR/search.sh"  "$@" ;;
+        doctor)   doctor "$@" ;;
+        -h|--help|help) show_help ;;
+        *) echo "Unknown subcommand: $sub" >&2; show_help; exit 1 ;;
+    esac
+}
+
+main "$@"

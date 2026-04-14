@@ -1,0 +1,182 @@
+{
+  "files": {
+    "history":   "$HOME/.local/share/zsh-complete/history.log",
+    "commands":  "$HOME/.local/share/zsh-complete/data/commands.json",
+    "available": "$HOME/.local/share/zsh-complete/data/comps-available.json",
+    "existing":  "$HOME/.local/share/zsh-complete/data/comps-existing.json",
+    "search":    "$HOME/.local/share/zsh-complete/data/comps-search.json",
+    "generic":   "$HOME/.local/share/zsh-complete/data/comps-generic.json",
+    "output":    "$HOME/.local/share/zsh-complete/data/comps-output.json"
+  },
+  "dirs": {
+    "temp":      "/tmp/zsh-complete",
+    "src":       "$HOME/.local/share/zsh-complete/src",
+    "available": "$HOME/.local/share/zsh-complete/available",
+    "active":    "$HOME/.zinit/completions"
+  },
+  "sources": [
+    {
+      "name": "user-overrides",
+      "type": "builtin",
+      "description": "User-curated completions kept under version control",
+      "paths": ["$HOME/.config/zsh/completions/custom"]
+    },
+    {
+      "name": "asdf",
+      "type": "snippet",
+      "when": "asdf",
+      "url": "https://github.com/asdf-vm/asdf/blob/master/internal/completions/asdf.zsh"
+    },
+    {
+      "name": "buku",
+      "type": "snippet",
+      "when": "buku",
+      "url": "https://github.com/jarun/buku/blob/master/auto-completion/zsh/_buku"
+    },
+    {
+      "name": "git-extras",
+      "type": "snippet",
+      "when": "git",
+      "url": "https://github.com/tj/git-extras/blob/master/etc/git-extras-completion.zsh"
+    },
+    {
+      "name": "cargo",
+      "type": "snippet",
+      "when": "cargo",
+      "url": "https://github.com/rust-lang/cargo/blob/master/src/etc/_cargo"
+    },
+    {
+      "name": "docker",
+      "type": "snippet",
+      "when": "docker",
+      "url": "https://github.com/docker/cli/blob/master/contrib/completion/zsh/_docker"
+    },
+    {
+      "name": "ghq",
+      "type": "snippet",
+      "when": "ghq",
+      "url": "https://github.com/x-motemen/ghq/blob/master/misc/zsh/_ghq"
+    },
+    {
+      "name": "tldr",
+      "type": "snippet",
+      "when": "tldr",
+      "url": "https://github.com/dbrgn/tealdeer/blob/main/completion/zsh_tealdeer",
+      "rename": "_tldr"
+    },
+    {
+      "name": "wl-copy",
+      "type": "snippet",
+      "when": "wl-copy",
+      "url": "https://github.com/bugaevc/wl-clipboard/blob/master/completions/zsh/_wl-copy"
+    },
+    {
+      "name": "wl-paste",
+      "type": "snippet",
+      "when": "wl-paste",
+      "url": "https://github.com/bugaevc/wl-clipboard/blob/master/completions/zsh/_wl-paste"
+    },
+    {
+      "name": "yadm",
+      "type": "snippet",
+      "when": "yadm",
+      "url": "https://github.com/TheLocehiliosan/yadm/blob/master/completion/zsh/_yadm"
+    },
+    {
+      "name": "youtube-dl",
+      "type": "snippet",
+      "when": "youtube-dl",
+      "url": "https://github.com/ytdl-org/youtube-dl/blob/master/youtube-dl.plugin.zsh",
+      "rename": "_youtube-dl"
+    },
+    {
+      "name": "alacritty",
+      "type": "snippet",
+      "when": "alacritty",
+      "url": "https://github.com/alacritty/alacritty/blob/master/extra/completions/_alacritty"
+    },
+    {
+      "name": "terraform",
+      "type": "snippet",
+      "when": "terraform",
+      "url": "https://github.com/macunha1/zsh-terraform/blob/master/_terraform"
+    },
+    {
+      "name": "git-flow",
+      "type": "snippet",
+      "when": "git",
+      "url": "https://github.com/bobthecow/git-flow-completion/blob/master/git-flow-completion.zsh"
+    },
+    {
+      "name": "tmux-xpanes",
+      "type": "remote",
+      "when": "tmux",
+      "url": "https://github.com/greymd/tmux-xpanes",
+      "paths": ["completion/zsh/_*"]
+    },
+    {
+      "name": "zsh-pandoc-completion",
+      "type": "remote",
+      "when": "pandoc",
+      "url": "https://github.com/srijanshetty/zsh-pandoc-completion",
+      "paths": ["_pandoc"]
+    },
+    {
+      "name": "fasd",
+      "type": "generated",
+      "when": "fasd",
+      "commands": {
+        "fasd": "fasd --init zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install"
+      }
+    },
+    {
+      "name": "zsh-completions",
+      "type": "remote",
+      "url": "https://github.com/zsh-users/zsh-completions",
+      "paths": ["src/_*"]
+    },
+    {
+      "name": "zsh-more-completions",
+      "type": "remote",
+      "url": "https://github.com/MenkeTechnologies/zsh-more-completions",
+      "paths": ["src/_*", "override_src/_*"]
+    },
+    {
+      "name": "site-functions",
+      "type": "builtin",
+      "description": "Local site-functions installed by package managers / make install",
+      "paths": [
+        "$HOME/.local/share/zsh/site-functions",
+        "/usr/local/share/zsh/site-functions",
+        "/usr/share/zsh/site-functions"
+      ]
+    },
+    {
+      "name": "vendor-completions",
+      "type": "builtin",
+      "description": "Distro vendor-completions",
+      "paths": [
+        "$HOME/.local/share/zsh/vendor-completions",
+        "/usr/local/share/zsh/vendor-completions",
+        "/usr/share/zsh/vendor-completions"
+      ]
+    },
+    {
+      "name": "zsh-builtin",
+      "type": "builtin",
+      "description": "Zsh's own bundled Completion functions",
+      "paths": [
+        "/usr/share/zsh/functions/Completion/Base",
+        "/usr/share/zsh/functions/Completion/Zsh",
+        "/usr/share/zsh/functions/Completion/Unix",
+        "/usr/share/zsh/functions/Completion/Debian",
+        "/usr/share/zsh/functions/Completion/Linux",
+        "/usr/share/zsh/functions/Completion/X"
+      ]
+    }
+  ],
+  "commands": {
+    "lscpu": "zsh-completions",
+    "ps": "zsh-builtin"
+  }
+}

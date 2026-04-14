@@ -1,0 +1,12 @@
+{
+  "command_name": [
+    {
+      "path": "/path/to/available-completion.3",
+      "lines": 50
+    },
+    {
+      "path": "/path/to/available-completion.5",
+      "lines": 50
+    }
+  ]
+}

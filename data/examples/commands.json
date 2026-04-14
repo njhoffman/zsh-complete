@@ -1,0 +1,25 @@
+{
+  "command_name": [
+    {
+      "type": "function",
+      "path": "/path/to/command",
+      "lines": 50,
+      "mime": "application/ascii"
+    },
+    {
+      "type": "file",
+      "path": "/path/to/command",
+      "lines": 50,
+      "mime": "application/binary"
+    }
+  ],
+  "command_name2": [
+    {
+      "type": "builtin"
+    },
+    {
+      "type": "alias",
+      "path": "command_name2 alias definition"
+    }
+  ]
+}

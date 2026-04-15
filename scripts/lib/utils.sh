@@ -60,6 +60,36 @@ log_timestamp() {
     date '+%Y-%m-%d %H:%M:%S'
 }
 
+# Tracks the previous log call's wall-clock for elapsed-time annotations.
+LAST_LOG_EPOCH="${EPOCHREALTIME:-}"
+
+# Compute elapsed seconds since the last log call. Empty if <1s or unavailable.
+# Override with TEST_LOG_ELAPSED to bypass the wall clock for deterministic tests.
+log_elapsed_suffix() {
+    if [[ -n "${TEST_LOG_ELAPSED:-}" ]]; then
+        printf ' (took %ss)' "$TEST_LOG_ELAPSED"
+        return
+    fi
+
+    local now="${EPOCHREALTIME:-}"
+    [[ -z "$now" || -z "$LAST_LOG_EPOCH" ]] && { LAST_LOG_EPOCH="$now"; return; }
+
+    # EPOCHREALTIME = "<seconds>.<microseconds>"; convert to integer microseconds
+    # to avoid awk/bc dependency.
+    local now_us prev_us delta_us
+    now_us="${now/./}"
+    prev_us="${LAST_LOG_EPOCH/./}"
+    delta_us=$(( now_us - prev_us ))
+    LAST_LOG_EPOCH="$now"
+
+    if (( delta_us >= 1000000 )); then
+        local s ms
+        s=$(( delta_us / 1000000 ))
+        ms=$(( (delta_us % 1000000) / 100000 ))
+        printf ' (took %d.%ds)' "$s" "$ms"
+    fi
+}
+
 # Write to log file if configured
 log_to_file() {
     local level="$1"
@@ -84,15 +114,16 @@ _log() {
     local color="$3"
     local message="$4"
 
-    local current_level_num
+    local current_level_num suffix
     current_level_num=$(get_current_log_level)
+    suffix=$(log_elapsed_suffix)
 
     # Always log to file regardless of level
-    log_to_file "$level" "$message"
+    log_to_file "$level" "${message}${suffix}"
 
     # Only output to terminal if level is at or below current threshold
     if [[ $level_num -le $current_level_num ]]; then
-        echo -e "${color}[${level}]${COLOR_RESET} $message" >&2
+        echo -e "${color}[${level}]${COLOR_RESET} ${message}${suffix}" >&2
     fi
 }
 
@@ -250,6 +281,41 @@ ensure_dir() {
         log_debug "Creating directory: $dir"
         mkdir -p "$dir"
     fi
+}
+
+# Render a progress bar to stderr. Only draws when stderr is a TTY.
+# Usage: progress_bar CURRENT TOTAL [LABEL]
+# Force off by setting NO_PROGRESS=1; force on with FORCE_PROGRESS=1.
+progress_bar() {
+    local current="$1" total="$2" label="${3:-}"
+    [[ "${NO_PROGRESS:-0}" == "1" ]] && return 0
+    if [[ "${FORCE_PROGRESS:-0}" != "1" && ! -t 2 ]]; then
+        return 0
+    fi
+    (( total <= 0 )) && return 0
+
+    local width=30 pct filled empty bar
+    pct=$(( current * 100 / total ))
+    (( pct > 100 )) && pct=100
+    filled=$(( current * width / total ))
+    (( filled > width )) && filled=$width
+    empty=$(( width - filled ))
+
+    bar=$(printf '%*s' "$filled" '' | tr ' ' '=')
+    bar+=$(printf '%*s' "$empty"  '' | tr ' ' ' ')
+
+    # \r returns to start of line; \033[K clears to end.
+    printf '\r\033[K[%s] %d/%d (%d%%) %s' \
+        "$bar" "$current" "$total" "$pct" "$label" >&2
+}
+
+# Finish a progress bar: clear the line so subsequent output isn't mangled.
+progress_done() {
+    [[ "${NO_PROGRESS:-0}" == "1" ]] && return 0
+    if [[ "${FORCE_PROGRESS:-0}" != "1" && ! -t 2 ]]; then
+        return 0
+    fi
+    printf '\r\033[K' >&2
 }
 
 # Print aligned output (key-value pairs)

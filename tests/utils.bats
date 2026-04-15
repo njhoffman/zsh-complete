@@ -94,6 +94,59 @@ teardown() {
     assert_file_contains "$TEST_TEMP_ROOT/history.log" "Test message"
 }
 
+@test "log lines do not include duration when steps are fast" {
+    load_config
+    LAST_LOG_EPOCH="$EPOCHREALTIME"
+    log_info "Quick step"
+    ! grep -q "took" "$TEST_TEMP_ROOT/history.log"
+}
+
+@test "log lines include (took Ns) when step exceeds 1s (sentinel)" {
+    load_config
+    TEST_LOG_ELAPSED="2.4" log_info "Slow step"
+    grep -q "Slow step (took 2.4s)" "$TEST_TEMP_ROOT/history.log"
+}
+
+@test "log_elapsed_suffix prints (took ...) once at least 1s has elapsed" {
+    LAST_LOG_EPOCH="1000.000000"
+    EPOCHREALTIME="1002.500000" run log_elapsed_suffix
+    [[ "$output" == " (took 2.5s)" ]]
+}
+
+@test "log_elapsed_suffix prints empty when below 1s" {
+    LAST_LOG_EPOCH="1000.000000"
+    EPOCHREALTIME="1000.500000" run log_elapsed_suffix
+    [[ -z "$output" ]]
+}
+
+@test "progress_bar emits percentage and label when forced on" {
+    FORCE_PROGRESS=1 run progress_bar 25 100 "doing thing"
+    [[ "$output" == *"25/100"* ]]
+    [[ "$output" == *"(25%)"* ]]
+    [[ "$output" == *"doing thing"* ]]
+}
+
+@test "progress_bar is silent when NO_PROGRESS=1" {
+    NO_PROGRESS=1 run progress_bar 50 100 "x"
+    [[ -z "$output" ]]
+}
+
+@test "progress_bar is silent when stderr is not a tty (default)" {
+    run progress_bar 50 100 "x"
+    [[ -z "$output" ]]
+}
+
+@test "progress_bar caps percentage at 100" {
+    FORCE_PROGRESS=1 run progress_bar 200 100 "overshoot"
+    [[ "$output" == *"(100%)"* ]]
+}
+
+@test "progress_done clears the line when forced on" {
+    FORCE_PROGRESS=1 run progress_done
+    # \r and ESC[K
+    [[ "$output" == *$'\r'* ]]
+}
+
 @test "count_lines returns correct count" {
     echo -e "line1\nline2\nline3" > "$TEST_TEMP_ROOT/testfile"
     local count

@@ -60,6 +60,14 @@ _stream_to_object() {
             | from_entries'
 }
 
+# Enumerate unique commands visible to the shell (dedup + sort).
+# Uses `compgen -c` which covers builtins, functions, aliases, and PATH
+# executables in a single pass — orders of magnitude faster than iterating
+# every PATH directory for large paths.
+_enumerate_path_commands() {
+    compgen -c | LC_ALL=C sort -u
+}
+
 # Build commands.json
 compile_commands() {
     local limit="${1:-${COMPILE_COMMANDS_LIMIT:-0}}"
@@ -69,35 +77,32 @@ compile_commands() {
     commands_file=$(get_file commands)
     ensure_dir "$(dirname "$commands_file")"
 
-    local count=0
-    declare -A seen=()
+    local -a all_commands=()
+    mapfile -t all_commands < <(_enumerate_path_commands)
+    local total=${#all_commands[@]}
+    if [[ "$limit" -gt 0 && "$limit" -lt "$total" ]]; then
+        total="$limit"
+        all_commands=("${all_commands[@]:0:$total}")
+    fi
+
     local tmp
     tmp=$(mktemp)
+    local i=0 count=0 cmd_name raw info
+    for cmd_name in "${all_commands[@]}"; do
+        i=$((i + 1))
+        progress_bar "$i" "$total" "inspecting: $cmd_name"
 
-    local path_dirs dir cmd_path cmd_name raw info
-    IFS=':' read -ra path_dirs <<< "$PATH"
-    for dir in "${path_dirs[@]}"; do
-        [[ -d "$dir" ]] || continue
-        for cmd_path in "$dir"/*; do
-            [[ -x "$cmd_path" && -f "$cmd_path" ]] || continue
-            if [[ "$limit" -gt 0 && "$count" -ge "$limit" ]]; then
-                break 2
-            fi
-            cmd_name=$(basename "$cmd_path")
-            [[ -n "${seen[$cmd_name]:-}" ]] && continue
-            seen["$cmd_name"]=1
-
-            raw=$(get_command_info "$cmd_name" 2>/dev/null) || true
-            [[ -z "$raw" ]] && continue
-            info=$(echo "$raw" | jq -cs '.')
-            printf '%s\t%s\0' "$cmd_name" "$info" >> "$tmp"
-            count=$((count + 1))
-        done
+        raw=$(get_command_info "$cmd_name" 2>/dev/null) || true
+        [[ -z "$raw" ]] && continue
+        info=$(echo "$raw" | jq -cs '.')
+        printf '%s\t%s\0' "$cmd_name" "$info" >> "$tmp"
+        count=$((count + 1))
     done
+    progress_done
 
     _stream_to_object < "$tmp" > "$commands_file"
     rm -f "$tmp"
-    log_info "Recorded $count commands"
+    log_info "Recorded $count commands (scanned $total)"
 }
 
 # Build comps-existing.json by scanning standard zsh dirs.
